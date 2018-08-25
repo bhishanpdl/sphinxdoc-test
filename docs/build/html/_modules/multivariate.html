@@ -1,0 +1,368 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>multivariate &#8212; Bhishan&#39;s 1 documentation</title>
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Bhishan&#39;s 1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for multivariate</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!python</span>
+<span class="c1"># -*- coding: utf-8 -*-#</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">:Title: Multivariate Linear Regression.</span>
+
+<span class="sd">@author: Bhishan Poudel</span>
+
+<span class="sd">@date: Sep 22, 2017</span>
+
+<span class="sd">@email: bhishanpdl@gmail.com</span>
+
+<span class="sd">The cost function is given by</span>
+
+<span class="sd">.. math::</span>
+
+<span class="sd">  J(w) = \\frac{1}{2N} \sum_{n=1}^N (h(x_n,w) - t_n)^2</span>
+
+<span class="sd">Minimizing the cost function w.r.t. w gives the solution:</span>
+
+<span class="sd">.. math::</span>
+
+<span class="sd">  w = np.linalg.lstsq(X1,t)[0]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># Imports</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">import</span> <span class="nn">numpy.polynomial.polynomial</span> <span class="k">as</span> <span class="nn">poly</span>
+<span class="kn">from</span> <span class="nn">numpy.core.umath_tests</span> <span class="k">import</span> <span class="n">inner1d</span>
+<span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="k">import</span> <span class="n">norm</span><span class="p">,</span><span class="n">lstsq</span><span class="p">,</span><span class="n">inv</span>
+
+<span class="c1"># for univariate multivariate comparison</span>
+<span class="kn">from</span> <span class="nn">univariate</span> <span class="k">import</span> <span class="n">univariate_reg</span>
+
+<span class="c1"># checking</span>
+<span class="c1">#</span>
+
+
+<span class="c1"># Read data matrix X and labels t from text file.</span>
+<div class="viewcode-block" id="read_data"><a class="viewcode-back" href="../multivariate.html#multivariate.read_data">[docs]</a><span class="k">def</span> <span class="nf">read_data</span><span class="p">(</span><span class="n">infile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read the datafile.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      infile (str): path to datafile</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># data = np.loadtxt(infile)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">t</span></div>
+
+
+<span class="c1">#----------------------------------------------------------------------#</span>
+<span class="c1">#  function: train                                                     #</span>
+<span class="c1">#----------------------------------------------------------------------#</span>
+<span class="c1"># Here no. of features M = 3 (floor, bedrooms, age)</span>
+<span class="c1"># Implement normal equations to compute w = [w0, w1, ..., w_M].</span>
+<div class="viewcode-block" id="train"><a class="viewcode-back" href="../multivariate.html#multivariate.train">[docs]</a><span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">X1</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Train the data and return the weights w.</span>
+
+<span class="sd">    Args:</span>
+
+<span class="sd">      X1 (array): Design matrix of size (m+1, n). I.e. There are</span>
+<span class="sd">        m features and one bias column in the matrix X1.</span>
+
+<span class="sd">      t (column): target column vector</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">       Here the design matrix X1 should have one extra bias term.</span>
+
+<span class="sd">    .. warning::</span>
+
+<span class="sd">       The operator @ requires python &gt;= 3.5</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Method 1</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">X1</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X1</span><span class="p">))</span> <span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X1</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">w</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">w</span><span class="p">))</span> <span class="c1"># make 1d row array</span>
+
+    <span class="c1"># Method 2</span>
+    <span class="c1"># w = (inv(X1.T @ X1)) @ X1.T @ t</span>
+    <span class="c1"># w = np.array(w).reshape(1, len(w)) # make 1d row array</span>
+
+    <span class="c1"># Method 3</span>
+    <span class="c1"># w = np.linalg.lstsq(X1,t)[0]</span>
+    <span class="c1"># w = np.array(w).reshape(1, len(w)) # make 1d row array</span>
+
+    <span class="k">return</span> <span class="n">w</span></div>
+
+
+<span class="c1"># Compute RMSE on dataset (X, t).</span>
+<div class="viewcode-block" id="compute_rmse"><a class="viewcode-back" href="../multivariate.html#multivariate.compute_rmse">[docs]</a><span class="k">def</span> <span class="nf">compute_rmse</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the RMSE.</span>
+
+<span class="sd">    RMSE is the root mean square error.</span>
+
+<span class="sd">    .. math:: RMSE = \sqrt{\sum_{i=1}^{n}  \\frac{(h - t)^2}{n} }</span>
+
+<span class="sd">    h is the hypothesis.</span>
+
+<span class="sd">    :math:`h = X w^T`</span>
+
+<span class="sd">    To find the norm of the residual matrix h-t we may use</span>
+<span class="sd">    the code::</span>
+
+<span class="sd">      # inner1d is the fastest subroutine.</span>
+<span class="sd">      from numpy.core.umath_tests import inner1d</span>
+<span class="sd">      np.sqrt(inner1d(h-t,h-t))</span>
+
+<span class="sd">      # We can also use another method:</span>
+<span class="sd">      ht_norm = np.linalg.norm(h - t)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Method 1</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="c1"># h = X @ w.T</span>
+    <span class="n">rmse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(((</span><span class="n">h</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+
+    <span class="c1"># Method 2</span>
+    <span class="c1"># h = np.dot(X, w.T)</span>
+    <span class="c1"># ht_norm = np.sqrt(inner1d(h-t,h-t))</span>
+    <span class="c1"># rmse = ht_norm / np.sqrt(len(X))</span>
+    <span class="c1"># rmse = rmse[0]</span>
+
+    <span class="c1"># Method 3</span>
+    <span class="c1"># norm is square root of sum of squares</span>
+    <span class="c1"># rmse is norm/ sqrt(n)</span>
+    <span class="c1">#</span>
+    <span class="c1"># h = np.dot(X, w.T)</span>
+    <span class="c1"># ht_norm = np.linalg.norm(h - t)</span>
+    <span class="c1"># rmse = ht_norm / np.sqrt(len(X))</span>
+
+    <span class="c1"># Checking</span>
+    <span class="c1"># print(&quot;t.shape = &quot;, t.shape)</span>
+    <span class="c1"># print(&quot;w.shape = &quot;, w.shape)</span>
+    <span class="c1"># print(&quot;h.shape = &quot;, h.shape)</span>
+    <span class="c1"># print(&quot;X.shape = &quot;, X.shape)</span>
+    <span class="c1"># print(&quot;len(X1) = &quot;, len(X))</span>
+
+    <span class="c1"># Checking</span>
+    <span class="c1"># rmse = 0.0</span>
+    <span class="c1"># try:</span>
+    <span class="c1">#     from sklearn.metrics import mean_squared_error</span>
+    <span class="c1">#     rmse = mean_squared_error(h, t)**0.5</span>
+    <span class="c1">#     rmse = np.sqrt(np.square(h - t).mean())</span>
+    <span class="c1"># except:</span>
+    <span class="c1">#     print(&#39;Error: The library sklearn not installed!&#39;)</span>
+
+
+    <span class="c1"># Return RMSE</span>
+    <span class="k">return</span> <span class="n">rmse</span></div>
+
+<span class="c1"># Compute objective function (cost) on dataset (X, t).</span>
+<div class="viewcode-block" id="compute_cost"><a class="viewcode-back" href="../multivariate.html#multivariate.compute_cost">[docs]</a><span class="k">def</span> <span class="nf">compute_cost</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the cost function.</span>
+
+<span class="sd">    .. math:: J = \\frac{1}{2n} \sum_{i=1}^{n}  \\frac{(h - t)^2}{n}</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Compute cost</span>
+    <span class="c1"># N = float(len(t))</span>
+    <span class="c1"># h = np.dot(X, w.T)   # h = X @ w.T</span>
+    <span class="c1"># J = np.sum((h - t) ** 2) /2 / N</span>
+
+    <span class="c1"># One liner</span>
+<div class="viewcode-block" id="check_results"><a class="viewcode-back" href="../multivariate.html#multivariate.check_results">[docs]</a>    <span class="n">J</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">X</span> <span class="o">@</span> <span class="n">w</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span><span class="mi">2</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+
+
+    <span class="k">return</span> <span class="n">J</span></div>
+
+<span class="k">def</span> <span class="nf">check_results</span><span class="p">(</span><span class="n">y_train</span><span class="p">,</span> <span class="n">x1_train</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Multivariate Regression with statsmodels.api</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      y_train (float): target column vector of floats.</span>
+<span class="sd">      x1_train (array): features+1 dimensional numpy array</span>
+
+<span class="sd">    This fits the multivariate linear regression in four lines::</span>
+
+<span class="sd">        import statsmodels.api as sm</span>
+<span class="sd">        model = sm.OLS(y_train, x1_train)</span>
+<span class="sd">        result = model.fit()</span>
+<span class="sd">        print (result.summary())</span>
+
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">statsmodels.api</span> <span class="k">as</span> <span class="nn">sm</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">OLS</span><span class="p">(</span><span class="n">y_train</span><span class="p">,</span> <span class="n">x1_train</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
+
+    <span class="k">except</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error: statsmodels libray not found!&#39;</span><span class="p">)</span></div>
+
+
+
+
+<span class="c1">##=======================================================================</span>
+<span class="c1">## Main Program</span>
+<span class="c1">##=======================================================================</span>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../multivariate.html#multivariate.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="s1">&#39;Multivariate Exercise.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="s1">&#39;--input_data_dir&#39;</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;../data/multivariate&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Directory for the multivariate houses dataset.&#39;</span><span class="p">)</span>
+    <span class="n">FLAGS</span><span class="p">,</span> <span class="n">unparsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_known_args</span><span class="p">()</span>
+
+    <span class="c1"># Read the training and test data.</span>
+    <span class="n">Xtrain</span><span class="p">,</span> <span class="n">ttrain</span> <span class="o">=</span> <span class="n">read_data</span><span class="p">(</span><span class="n">FLAGS</span><span class="o">.</span><span class="n">input_data_dir</span> <span class="o">+</span> <span class="s2">&quot;/train.txt&quot;</span><span class="p">)</span>
+    <span class="n">Xtest</span><span class="p">,</span> <span class="n">ttest</span> <span class="o">=</span> <span class="n">read_data</span><span class="p">(</span><span class="n">FLAGS</span><span class="o">.</span><span class="n">input_data_dir</span> <span class="o">+</span> <span class="s2">&quot;/test.txt&quot;</span><span class="p">)</span>
+
+    <span class="c1">#  Append ones to the first column</span>
+    <span class="n">X1train</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">ttrain</span><span class="p">),</span> <span class="n">Xtrain</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">X1test</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">ttest</span><span class="p">),</span> <span class="n">Xtest</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># debug</span>
+    <span class="c1"># print(&quot; First column X1train[:, [0]] = \n{}&quot;.format(X1train[:, [0]]))</span>
+    <span class="c1"># print(&quot; First row X1train[0] = \n{}&quot;.format(X1train[0]))</span>
+
+
+    <span class="c1"># Train model on training examples.</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">train</span><span class="p">(</span><span class="n">X1train</span><span class="p">,</span> <span class="n">ttrain</span><span class="p">)</span>
+
+    <span class="c1"># Print model parameters.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="o">*</span><span class="mi">50</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Multivariate Regression&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Params Mulitvariate: &#39;</span><span class="p">,</span> <span class="n">w</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+
+    <span class="c1"># Print cost and RMSE on training data.</span>
+    <span class="c1"># train</span>
+    <span class="n">E_rms_train_multi</span> <span class="o">=</span> <span class="n">compute_rmse</span><span class="p">(</span><span class="n">X1train</span><span class="p">,</span> <span class="n">ttrain</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+    <span class="n">J_train_multi</span> <span class="o">=</span> <span class="n">compute_cost</span><span class="p">(</span><span class="n">X1train</span><span class="p">,</span> <span class="n">ttrain</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+
+    <span class="c1"># test</span>
+    <span class="n">E_rms_test_multi</span> <span class="o">=</span> <span class="n">compute_rmse</span><span class="p">(</span><span class="n">X1test</span><span class="p">,</span> <span class="n">ttest</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+    <span class="n">J_test_multi</span> <span class="o">=</span> <span class="n">compute_cost</span><span class="p">(</span><span class="n">X1test</span><span class="p">,</span> <span class="n">ttest</span><span class="p">,</span><span class="n">w</span><span class="p">)</span>
+
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;E_rms_train Multivariate: </span><span class="si">%0.2e</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">E_rms_train_multi</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;J_train Multivariate: </span><span class="si">%0.2e</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">J_train_multi</span><span class="p">)</span>
+
+    <span class="c1"># Print cost and RMSE on test data.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;E_rms_test Multivariate: </span><span class="si">%0.2e</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">E_rms_test_multi</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;J_test Multivariate: </span><span class="si">%0.2e</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">J_test_multi</span><span class="p">)</span>
+
+    <span class="c1">#===========================================================</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">50</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Comparison of Univariate and Multivariate&quot;</span><span class="p">)</span>
+    <span class="n">fh_train_uni</span> <span class="o">=</span> <span class="s1">&#39;../data/univariate/train.txt&#39;</span>
+    <span class="n">fh_test_uni</span> <span class="o">=</span> <span class="s1">&#39;../data/univariate/test.txt&#39;</span>
+
+    <span class="n">E_rms_train_uni</span><span class="p">,</span> <span class="n">J_train_uni</span><span class="p">,</span> <span class="n">E_rms_test_uni</span><span class="p">,</span> <span class="n">J_test_uni</span> <span class="o">=</span> <span class="n">univariate_reg</span><span class="p">(</span><span class="n">fh_train_uni</span><span class="p">,</span> <span class="n">fh_test_uni</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Univariate             Multivariate&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;E_train = </span><span class="si">{:.4e}</span><span class="s2">     </span><span class="si">{:.4e}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">E_rms_train_uni</span><span class="p">,</span> <span class="n">E_rms_train_multi</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;E_test  = </span><span class="si">{:.4e}</span><span class="s2">     </span><span class="si">{:.4e}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">E_rms_test_uni</span> <span class="p">,</span> <span class="n">E_rms_test_multi</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;J_train = </span><span class="si">{:.4e}</span><span class="s2">     </span><span class="si">{:.4e}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">J_train_uni</span>    <span class="p">,</span> <span class="n">J_train_multi</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;J_test  = </span><span class="si">{:.4e}</span><span class="s2">     </span><span class="si">{:.4e}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">J_test_uni</span>     <span class="p">,</span> <span class="n">J_test_multi</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="o">*</span><span class="mi">50</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Multivariate Params are given below:&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">([</span> <span class="s2">&quot;</span><span class="si">{:.2e}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="o">*</span><span class="mi">20</span><span class="p">,</span> <span class="s2">&quot;The End&quot;</span><span class="p">,</span> <span class="s2">&quot;#&quot;</span><span class="o">*</span><span class="mi">20</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+    <span class="c1"># Check result with statsmodels</span>
+    <span class="c1"># check_results(ttrain, X1train)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># Run main function</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Bhishan&#39;s 1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Bhishan Poudel.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
+    </div>
+  </body>
+</html>

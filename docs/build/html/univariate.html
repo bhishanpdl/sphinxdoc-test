@@ -1,0 +1,162 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>univariate &#8212; Bhishan&#39;s 1 documentation</title>
+    <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="polyfit" href="polyfit.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="polyfit.html" title="polyfit"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Bhishan&#39;s 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-univariate">
+<span id="univariate"></span><h1>univariate<a class="headerlink" href="#module-univariate" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Title:</th><td class="field-body">Univariate Linear Regression.</td>
+</tr>
+</tbody>
+</table>
+<p>&#64;author: Bhishan Poudel</p>
+<p>&#64;date: Sep 22, 2017</p>
+<p>&#64;email: <a class="reference external" href="mailto:bhishanpdl&#37;&#52;&#48;gmail&#46;com">bhishanpdl<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+<p>The cost function is given by</p>
+<div class="math">
+<p><img src="_images/math/50b3ccf5f4699db72112f166b695ee646a64bf3e.png" alt="J(w) = \frac{1}{2N} \sum_{n=1}^N (h(x_n,w) - t_n)^2"/></p>
+</div><p>Minimizing the cost function w.r.t. w gives two system of liner equations:</p>
+<div class="math">
+<p><img src="_images/math/21a5a966bb08afeb20bae3755713b1b091d11422.png" alt="w_0N + w_1 \sum_{n=1}^N x_n = \sum_{n=1}^N t_n \\\\
+w_0 \sum_{n=1}^N x_n + w_1 \sum_{n=1}^N x_n^2 = \sum_{n=1}^N t_nx_n"/></p>
+</div><p>We solve these normal equations and find the values w0 and w1.</p>
+<dl class="function">
+<dt id="univariate.compute_cost">
+<code class="descclassname">univariate.</code><code class="descname">compute_cost</code><span class="sig-paren">(</span><em>X</em>, <em>t</em>, <em>w</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/univariate.html#compute_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#univariate.compute_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute objective function on dataset (X, t).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="univariate.compute_rmse">
+<code class="descclassname">univariate.</code><code class="descname">compute_rmse</code><span class="sig-paren">(</span><em>X</em>, <em>t</em>, <em>w</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/univariate.html#compute_rmse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#univariate.compute_rmse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute RMSE on dataset (X, t).</p>
+<p>Note: cost function J is 1/2 of mean squared error.
+RMSE is square root of mean squared error.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="univariate.main">
+<code class="descclassname">univariate.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/univariate.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#univariate.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run main function.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="univariate.myplot">
+<code class="descclassname">univariate.</code><code class="descname">myplot</code><span class="sig-paren">(</span><em>fh_train</em>, <em>fh_test</em>, <em>w</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/univariate.html#myplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#univariate.myplot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="univariate.read_data">
+<code class="descclassname">univariate.</code><code class="descname">read_data</code><span class="sig-paren">(</span><em>infile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/univariate.html#read_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#univariate.read_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the datafile and return arrays</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="univariate.train">
+<code class="descclassname">univariate.</code><code class="descname">train</code><span class="sig-paren">(</span><em>X</em>, <em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/univariate.html#train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#univariate.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement univariate linear regression to compute w = [w0, w1].</p>
+<p>I solve system of linear equations from lecture 01</p>
+<p>w0 N      + w1 sum_x  = sum_t</p>
+<p>w0 sum_x  + w1 sum_xx = sum_tx</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="univariate.univariate_reg">
+<code class="descclassname">univariate.</code><code class="descname">univariate_reg</code><span class="sig-paren">(</span><em>fh_train</em>, <em>fh_test</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/univariate.html#univariate_reg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#univariate.univariate_reg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="polyfit.html"
+                        title="previous chapter">polyfit</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="polyfit.html" title="polyfit"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Bhishan&#39;s 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Bhishan Poudel.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
+    </div>
+  </body>
+</html>

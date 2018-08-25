@@ -1,0 +1,225 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>multivariate &#8212; Bhishan&#39;s 1 documentation</title>
+    <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="polyfit" href="polyfit.html" />
+    <link rel="prev" title="code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="polyfit.html" title="polyfit"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="code"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Bhishan&#39;s 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-multivariate">
+<span id="multivariate"></span><h1>multivariate<a class="headerlink" href="#module-multivariate" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Title:</th><td class="field-body">Multivariate Linear Regression.</td>
+</tr>
+</tbody>
+</table>
+<p>&#64;author: Bhishan Poudel</p>
+<p>&#64;date: Sep 22, 2017</p>
+<p>&#64;email: <a class="reference external" href="mailto:bhishanpdl&#37;&#52;&#48;gmail&#46;com">bhishanpdl<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+<p>The cost function is given by</p>
+<div class="math">
+<p><img src="_images/math/50b3ccf5f4699db72112f166b695ee646a64bf3e.png" alt="J(w) = \frac{1}{2N} \sum_{n=1}^N (h(x_n,w) - t_n)^2"/></p>
+</div><p>Minimizing the cost function w.r.t. w gives the solution:</p>
+<div class="math">
+<p><img src="_images/math/71f47a994bc97621e3472ead68a19def7187dc26.png" alt="w = np.linalg.lstsq(X1,t)[0]"/></p>
+</div><dl class="function">
+<dt id="multivariate.check_results">
+<code class="descclassname">multivariate.</code><code class="descname">check_results</code><span class="sig-paren">(</span><em>y_train</em>, <em>x1_train</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/multivariate.html#check_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#multivariate.check_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multivariate Regression with statsmodels.api</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>y_train</strong> (<em>float</em>) – target column vector of floats.</li>
+<li><strong>x1_train</strong> (<em>array</em>) – features+1 dimensional numpy array</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This fits the multivariate linear regression in four lines:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">statsmodels.api</span> <span class="k">as</span> <span class="nn">sm</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">OLS</span><span class="p">(</span><span class="n">y_train</span><span class="p">,</span> <span class="n">x1_train</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+<span class="nb">print</span> <span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="multivariate.compute_cost">
+<code class="descclassname">multivariate.</code><code class="descname">compute_cost</code><span class="sig-paren">(</span><em>X</em>, <em>t</em>, <em>w</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/multivariate.html#compute_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#multivariate.compute_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the cost function.</p>
+<div class="math">
+<p><img src="_images/math/c166e39f32e3f38d2695dc8931d676678f0acd2c.png" alt="J = \frac{1}{2n} \sum_{i=1}^{n}  \frac{(h - t)^2}{n}"/></p>
+</div></dd></dl>
+
+<dl class="function">
+<dt id="multivariate.compute_rmse">
+<code class="descclassname">multivariate.</code><code class="descname">compute_rmse</code><span class="sig-paren">(</span><em>X</em>, <em>t</em>, <em>w</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/multivariate.html#compute_rmse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#multivariate.compute_rmse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the RMSE.</p>
+<p>RMSE is the root mean square error.</p>
+<div class="math">
+<p><img src="_images/math/141644b2c15aad88f27470bda0adacef361bc7dd.png" alt="RMSE = \sqrt{\sum_{i=1}^{n}  \frac{(h - t)^2}{n} }"/></p>
+</div><p>h is the hypothesis.</p>
+<p><img class="math" src="_images/math/fd207a3541d3b0c95d1b2b800f1435aaaf785386.png" alt="h = X w^T"/></p>
+<p>To find the norm of the residual matrix h-t we may use
+the code:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># inner1d is the fastest subroutine.</span>
+<span class="kn">from</span> <span class="nn">numpy.core.umath_tests</span> <span class="k">import</span> <span class="n">inner1d</span>
+<span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">inner1d</span><span class="p">(</span><span class="n">h</span><span class="o">-</span><span class="n">t</span><span class="p">,</span><span class="n">h</span><span class="o">-</span><span class="n">t</span><span class="p">))</span>
+
+<span class="c1"># We can also use another method:</span>
+<span class="n">ht_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">h</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="multivariate.main">
+<code class="descclassname">multivariate.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/multivariate.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#multivariate.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="multivariate.read_data">
+<code class="descclassname">multivariate.</code><code class="descname">read_data</code><span class="sig-paren">(</span><em>infile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/multivariate.html#read_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#multivariate.read_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the datafile.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>infile</strong> (<em>str</em>) – path to datafile</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="multivariate.train">
+<code class="descclassname">multivariate.</code><code class="descname">train</code><span class="sig-paren">(</span><em>X1</em>, <em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/multivariate.html#train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#multivariate.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train the data and return the weights w.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>X1</strong> (<em>array</em>) – Design matrix of size (m+1, n). I.e. There are
+m features and one bias column in the matrix X1.</li>
+<li><strong>t</strong> (<em>column</em>) – target column vector</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Here the design matrix X1 should have one extra bias term.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The operator &#64; requires python &gt;= 3.5</p>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">code</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="polyfit.html"
+                        title="next chapter">polyfit</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="polyfit.html" title="polyfit"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="code"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Bhishan&#39;s 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Bhishan Poudel.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
+    </div>
+  </body>
+</html>

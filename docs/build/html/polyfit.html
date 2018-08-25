@@ -1,0 +1,446 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>polyfit &#8212; Bhishan&#39;s 1 documentation</title>
+    <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="univariate" href="univariate.html" />
+    <link rel="prev" title="multivariate" href="multivariate.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="univariate.html" title="univariate"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="multivariate.html" title="multivariate"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Bhishan&#39;s 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-polyfit">
+<span id="polyfit"></span><h1>polyfit<a class="headerlink" href="#module-polyfit" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Title:</th><td class="field-body">Polynomial Regresssion with Ridge Regression.</td>
+</tr>
+</tbody>
+</table>
+<p>&#64;author: Bhishan Poudel</p>
+<p>&#64;date: Sep 22, 2017</p>
+<p>&#64;email: <a class="reference external" href="mailto:bhishanpdl&#37;&#52;&#48;gmail&#46;com">bhishanpdl<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+<p>The cost function for the Ridge Regression is given by</p>
+<div class="math">
+<p><img src="_images/math/2347c69974344e9468d93d46713a03b288406352.png" alt="J(w) = \frac{1}{2N} \sum_{n=1}^N (h(x_n,w) - t_n)^2 +   \frac{\lambda}{2} ||w||^2"/></p>
+</div><p>Here, the first term is the half mean of the SSE.
+And the second term is the shrinkage penalty.
+The parameter <img class="math" src="_images/math/76f1d8ace30435987c01a00ca53a71cba1f40e6c.png" alt="\lambda"/> is called shrinkage hyperparamter.
+Since it is the hyperparamter we chose it from the validation set,
+not from the train set.</p>
+<p>The term <img class="math" src="_images/math/e618c2808d8b3ab4d7be82bbce615becc8da4438.png" alt="||w||^2"/> is the L-2 regularizaton on the SSE term.
+The square form is called Ridge Regression and the modulus form
+<img class="math" src="_images/math/9e1f7904007ade7e368ef229142df2a5ecab4bea.png" alt="|w|"/> is called Lasso Regresssion.</p>
+<p>If we have both Lasso and Ridge regression it is called Elastic
+Net Regression. Elastic Net Regression have the parameters:
+<img class="math" src="_images/math/8ce18a54c735ce2959ab2b34413036d8c79785f1.png" alt="\lambda_1 ||w|| + \lambda_2 ||w||^2"/></p>
+<p>If a group of predictors are highly correlated among themselves, LASSO
+tends to pick only one of them and shrink the other to exact zero (or, very near to zero). Lasso can not do grouped selection and tends to choose only one variable.
+It is good for eliminating trivial features but not good for grouped selection.
+Lasso gives the sparse model and is computationally less expensive.</p>
+<p>On the other hand, Ridge Regression penalize the term on the squares of the
+magnitude. The weight are drawn near to zero but not exactly zero. This method
+is computationally inefficient.</p>
+<dl class="function">
+<dt id="polyfit.comparison">
+<code class="descclassname">polyfit.</code><code class="descname">comparison</code><span class="sig-paren">(</span><em>fh_train</em>, <em>fh_test</em>, <em>fh_valid</em>, <em>lam_min_rmse_valid</em>, <em>M</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyfit.html#comparison"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyfit.comparison" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare the unregularized and regularized polynomial regression.</p>
+<p>Here, we compare test RMSE with and without ridge regularization for
+9th degree univariate polynomial regression.</p>
+<p>While fitting test data with ridge regression, we use the hyper parameter
+lambda that gives the minimum rmse in the cross-validation set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fh_train</strong> (<em>str</em>) – File path for train data</li>
+<li><strong>fh_test</strong> (<em>str</em>) – File path for test data</li>
+<li><strong>fh_valid</strong> (<em>str</em>) – File path for validation data</li>
+<li><strong>lam_min_rmse_valid</strong> (<em>float</em>) – The hyperparameter lambda that gives minimum</li>
+<li><strong>on cross validation set.</strong> (<em>rmse</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Return: None</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="polyfit.compute_rmse">
+<code class="descclassname">polyfit.</code><code class="descname">compute_rmse</code><span class="sig-paren">(</span><em>X</em>, <em>t</em>, <em>w</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyfit.html#compute_rmse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyfit.compute_rmse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the RMSE.</p>
+<p>RMSE is the root mean square error.</p>
+<div class="math">
+<p><img src="_images/math/7e256d827da7572b6d6faf2dc3f82aa896c38dc4.png" alt="RMSE = \sqrt{\sum_{i=1}^{n}  \frac{(h_i - t_i)^2}{n} }"/></p>
+</div><p>Here the hypothesis h is the matrix product of X and w.
+Hypothesis h should have the same dimension as target vector t.</p>
+<p>The norm of 1d vector can be calculated as given in <a class="reference external" href="https://en.wikipedia.org/wiki/Norm_(mathematics)">Wikipedia Norm</a>.</p>
+<p><img class="math" src="_images/math/87a9575f6d3a81704273484dcceb299ff020af68.png" alt="||x|| = \sqrt{x_1^2 + x_2^2 + ... + x_n^2}"/></p>
+<p>There are several methods to calculate hypothesis and norms.</p>
+<p><a class="reference external" href="https://stackoverflow.com/questions/9171158/how-do-you-get-the-magnitude-of-a-vector-in-numpy">Refer to stackoverflow</a>.</p>
+<p>Python codes to calculate norm of a 1d vector:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numpy.core.umath_tests</span> <span class="k">import</span> <span class="n">inner1d</span>
+
+<span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random_sample</span><span class="p">((</span><span class="mi">10</span><span class="o">**</span><span class="mi">6</span><span class="p">,</span><span class="mi">3</span><span class="p">,))</span> <span class="c1"># 1 million vectors</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;...i,...i&#39;</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">V</span><span class="p">))</span>
+<span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">V</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">V</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">V</span><span class="o">*</span><span class="n">V</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">E</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">inner1d</span><span class="p">(</span><span class="n">V</span><span class="p">,</span><span class="n">V</span><span class="p">))</span>
+
+<span class="nb">print</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">E</span><span class="p">,</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="n">A</span><span class="p">,</span><span class="n">B</span><span class="p">,</span><span class="n">C</span><span class="p">,</span><span class="n">D</span><span class="p">]]</span> <span class="c1"># [True, True, True, True]</span>
+
+<span class="kn">import</span> <span class="nn">cProfile</span>
+<span class="n">cProfile</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s2">&quot;np.sqrt(np.einsum(&#39;...i,...i&#39;, V, V))&quot;</span><span class="p">)</span> <span class="c1"># 3 function calls in 0.013 seconds</span>
+<span class="n">cProfile</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;np.linalg.norm(V,axis=1)&#39;</span><span class="p">)</span>              <span class="c1"># 9 function calls in 0.029 seconds</span>
+<span class="n">cProfile</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;np.sqrt((V ** 2).sum(-1))&#39;</span><span class="p">)</span>             <span class="c1"># 5 function calls in 0.028 seconds</span>
+<span class="n">cProfile</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;np.sqrt((V*V).sum(axis=1))&#39;</span><span class="p">)</span>            <span class="c1"># 5 function calls in 0.027 seconds</span>
+<span class="n">cProfile</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;np.sqrt(inner1d(V,V))&#39;</span><span class="p">)</span>                 <span class="c1"># 2 function calls in 0.009 seconds.</span>
+<span class="c1"># np.eisensum can also be written as</span>
+<span class="c1"># np.sqrt(np.einsum(&#39;ij,ij-&gt;i&#39;,a,a))</span>
+<span class="c1"># NOTE:</span>
+<span class="c1"># inner1d is ~3x faster than linalg.norm and a hair faster than einsum</span>
+<span class="c1"># For small data set ~1000 or less numpy is faster</span>
+<span class="c1"># a_norm = np.sqrt(a.dot(a)) is faster than np.sqrt(np.einsum(&#39;i,i&#39;, a, a))</span>
+</pre></div>
+</div>
+<p>We can calculate hypothesis as:
+<img class="math" src="_images/math/6283d9eb98e6ce235a28c37cf59e410f5f8fbdfa.png" alt="h = X &#64; w"/></p>
+<p>Or, we may use:
+<img class="math" src="_images/math/e0278c13e38f90ea376d7e9d5b644f22535e6eb4.png" alt="h = X .dot(w)"/></p>
+<p>One of the fastest methods to calculate the hypothesis is the
+np.einsum method. The explanation of <cite>einsum</cite> is given below:</p>
+<p>For example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">w</span>     <span class="n">X</span>      <span class="n">t</span>
+<span class="mi">2</span><span class="p">,</span><span class="mi">1</span>   <span class="mi">10</span><span class="p">,</span><span class="mi">2</span>   <span class="mi">10</span><span class="p">,</span><span class="mi">1</span>
+<span class="n">i</span><span class="p">,</span><span class="n">j</span>   <span class="n">k</span><span class="p">,</span> <span class="n">i</span>   <span class="n">k</span><span class="p">,</span><span class="n">j</span>
+
+<span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,ki-&gt;kj&#39;</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span> <span class="o">=</span> <span class="n">X</span> <span class="o">@</span> <span class="n">w</span>
+</pre></div>
+</div>
+<p>To find the norm of the residual matrix h-t we may use
+the code:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Using np.linalg.norm</span>
+<span class="n">ht_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">h</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span>
+
+<span class="c1"># inner1d is the faster than np.linalg.norm subroutine.</span>
+<span class="kn">from</span> <span class="nn">numpy.core.umath_tests</span> <span class="k">import</span> <span class="n">inner1d</span>
+<span class="n">ht_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">inner1d</span><span class="p">(</span><span class="n">h</span><span class="o">-</span><span class="n">t</span><span class="p">,</span><span class="n">h</span><span class="o">-</span><span class="n">t</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>To calculate RMSE we can also use sklearn library:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">mean_squared_error</span>
+<span class="n">rmse</span> <span class="o">=</span> <span class="n">mean_squared_error</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="polyfit.fit_reg_poly">
+<code class="descclassname">polyfit.</code><code class="descname">fit_reg_poly</code><span class="sig-paren">(</span><em>fh_train</em>, <em>fh_test</em>, <em>fh_valid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyfit.html#fit_reg_poly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyfit.fit_reg_poly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Regularized polynomial with fixed degree M = 9.</p>
+<p>Here, ln lambda varies from -50 to 0 with step size 5.
+I.e. lamdda varies from exp(-50) to 1.</p>
+<p>We have to calculate weight vector w for each lambda.
+For degree M = 9, weight vector w has 10 elements.</p>
+<p>We also find RMSE for train and validation set for each lambda.
+Then we choose the hyperparameter lambda that gives the lowest
+RMSE on the validation set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>fh_train</strong> (<em>str</em>) – File path for train data</li>
+<li><strong>fh_test</strong> (<em>str</em>) – File path for test data</li>
+<li><strong>fh_valid</strong> (<em>str</em>) – File path for validation data</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The value of hyper parameter lambda
+that minimizes RMSE for the validation set.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">lam_min_rmse_valid (float)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="polyfit.fit_unreg_poly">
+<code class="descclassname">polyfit.</code><code class="descname">fit_unreg_poly</code><span class="sig-paren">(</span><em>fh_train</em>, <em>fh_test</em>, <em>fh_valid</em>, <em>M</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyfit.html#fit_unreg_poly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyfit.fit_unreg_poly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unregularized polynomial regression for degree 0 to 9.</p>
+<p>Here, the degree of the polynomial varies from 0-9.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fh_train</strong> (<em>str</em>) – File path for train data</li>
+<li><strong>fh_test</strong> (<em>str</em>) – File path for test data</li>
+<li><strong>fh_valid</strong> (<em>str</em>) – File path for validation data</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Return: None</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="polyfit.main">
+<code class="descclassname">polyfit.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyfit.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyfit.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run main function.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="polyfit.myplot">
+<code class="descclassname">polyfit.</code><code class="descname">myplot</code><span class="sig-paren">(</span><em>X</em>, <em>t</em>, <em>label</em>, <em>style</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyfit.html#myplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyfit.myplot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="polyfit.plot_alldata">
+<code class="descclassname">polyfit.</code><code class="descname">plot_alldata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyfit.html#plot_alldata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyfit.plot_alldata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="polyfit.read_data">
+<code class="descclassname">polyfit.</code><code class="descname">read_data</code><span class="sig-paren">(</span><em>infile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyfit.html#read_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyfit.read_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="polyfit.read_data_vander">
+<code class="descclassname">polyfit.</code><code class="descname">read_data_vander</code><span class="sig-paren">(</span><em>infile</em>, <em>M</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyfit.html#read_data_vander"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyfit.read_data_vander" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the dataset and return vandermonde matrix Xvan for given degree M.</p>
+<p>This function returns vandermonde matrix of 1d array X.</p>
+<p>The vandermonde matrix will be of size len(X) * M.</p>
+<p>But here final Xvan will have shape sample * (degree+1)</p>
+<p>The first column of vandermonde matrix is all 1.</p>
+<p>The last column will be M-1 nth power of second column, NOT Mth power.</p>
+<p>The target t is of the size len(X)*1 i.e. N * 1 (N is sample size)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>infile</strong> (<em>str</em>) – input dataset text file, whitespace separated</li>
+<li><strong>M</strong> (<em>int</em>) – Degree of polynomial to fit</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Numpy vander function (Vandermonde Matrix).
+Refer <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.vander.html">Numpy vander</a>.</p>
+<p>Example:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">6</span><span class="p">)</span> <span class="c1"># x must be 1d array</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">])</span>
+<span class="n">xvan3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vander</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">increasing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># shape of xvn is len(x) * degree</span>
+<span class="c1"># first column is all 1 and last power is excluded</span>
+<span class="p">[[</span> <span class="mi">1</span>  <span class="mi">1</span>  <span class="mi">1</span><span class="p">]</span>
+<span class="p">[</span> <span class="mi">1</span>  <span class="mi">2</span>  <span class="mi">4</span><span class="p">]</span>
+<span class="p">[</span> <span class="mi">1</span>  <span class="mi">3</span>  <span class="mi">9</span><span class="p">]</span>
+<span class="p">[</span> <span class="mi">1</span>  <span class="mi">4</span> <span class="mi">16</span><span class="p">]</span>
+<span class="p">[</span> <span class="mi">1</span>  <span class="mi">5</span> <span class="mi">25</span><span class="p">]]</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Numpy array slicing:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">data</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="n">col0</span>     <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">]</span>
+<span class="n">col0_1</span>   <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
+<span class="n">col0_1a</span>  <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+<span class="n">not_col0</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span>
+<span class="n">not_last</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="polyfit.train">
+<code class="descclassname">polyfit.</code><code class="descname">train</code><span class="sig-paren">(</span><em>X</em>, <em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyfit.html#train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyfit.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train the data and return the weights w.</p>
+<p>This model uses OLS method to train the data without the penalty term.</p>
+<div class="math">
+<p><img src="_images/math/50b3ccf5f4699db72112f166b695ee646a64bf3e.png" alt="J(w) = \frac{1}{2N} \sum_{n=1}^N (h(x_n,w) - t_n)^2"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>X</strong> (<em>array</em>) – Design matrix of size (m+1, n). I.e. There are
+m features and one bias column in the matrix X.</li>
+<li><strong>t</strong> (<em>column</em>) – target column vector</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Here the design matrix X should have one extra bias term.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The operator &#64; requires python &gt;= 3.5</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Matrix properties.
+<a class="reference external" href="https://en.wikipedia.org/wiki/Matrix_multiplication">Wikipedia</a>.</p>
+<div class="last math">
+<p><img src="_images/math/1aaa18d8f643649c71a2be51cca8a0ad374053db.png" alt="AB \neq  BA \\
+(AB)^T =  B^T A^T \\
+(AB)^{-1} =  B^{-1} A^{-1} \\
+tr(AB) =  tr(BA) \\
+det(AB) = det(A) det(B) = det(B) det(A) = det(BA)"/></p>
+</div></div>
+</dd></dl>
+
+<dl class="function">
+<dt id="polyfit.train_regularized">
+<code class="descclassname">polyfit.</code><code class="descname">train_regularized</code><span class="sig-paren">(</span><em>Xm1</em>, <em>t</em>, <em>lam</em>, <em>M</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyfit.html#train_regularized"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polyfit.train_regularized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ridge Regularization (L2 normalization) with square penalty term.</p>
+<p>The cost function for ridge regularization is</p>
+<div class="math">
+<p><img src="_images/math/8fd18be092d701ab38abb7581225b11dd7f5bc1b.png" alt="J(w) = \frac{1}{2N} \sum_{n=1}^N (h(x_n,w) - t_n)^2 + \frac{\lambda}{2} ||w||^2"/></p>
+</div><p>Minimizing cost function gives the weight vector w.
+Here <img class="math" src="_images/math/76f1d8ace30435987c01a00ca53a71cba1f40e6c.png" alt="\lambda"/> is the hyperparameter chosen from validation set
+with lowest rmse for given values of degrees of polynomial. Different may
+give the same minimum rmse and we choose one of them.</p>
+<div class="math">
+<p><img src="_images/math/82e021f922e283340be3f1d167e318ae2e715eb9.png" alt="w = (\lambda N I) (X^T t)"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Xm1</strong> (<em>array</em>) – Design matrix of size (m+1, n). I.e. There are
+m features and one bias column in the matrix X.</li>
+<li><strong>t</strong> (<em>column</em>) – Target column vector. <img class="math" src="_images/math/a7e0d1cbb944a5fac9006b22411c4ed268371385.png" alt="\alpha no space before last"/></li>
+<li><strong>lam</strong> (<em>float</em>) – The hyperparameter <img class="math" src="_images/math/c100a55cc15fa52731675c19dcd4ecb9e197398a.png" alt="\alpha &gt; \beta"/> for the regularization.</li>
+<li><strong>M</strong> (<em>int</em>) – Degree of the polynomial to fit.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Here the design matrix X should have one extra bias term.
+The function read_data_vander returns X with one extra</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The operator &#64; requires python &gt;= 3.5</p>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="multivariate.html"
+                        title="previous chapter">multivariate</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="univariate.html"
+                        title="next chapter">univariate</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="univariate.html" title="univariate"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="multivariate.html" title="multivariate"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Bhishan&#39;s 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Bhishan Poudel.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
+    </div>
+  </body>
+</html>

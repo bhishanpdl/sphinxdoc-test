@@ -1,0 +1,739 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>polyfit &#8212; Bhishan&#39;s 1 documentation</title>
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Bhishan&#39;s 1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for polyfit</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!python</span>
+<span class="c1"># -*- coding: utf-8 -*-#</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">:Title: Polynomial Regresssion with Ridge Regression.</span>
+
+<span class="sd">@author: Bhishan Poudel</span>
+
+<span class="sd">@date: Sep 22, 2017</span>
+
+<span class="sd">@email: bhishanpdl@gmail.com</span>
+
+<span class="sd">The cost function for the Ridge Regression is given by</span>
+
+<span class="sd">.. math::</span>
+
+<span class="sd">  J(w) = \\frac{1}{2N} \sum_{n=1}^N (h(x_n,w) - t_n)^2 + \</span>
+<span class="sd">  \\frac{\lambda}{2} ||w||^2</span>
+
+
+<span class="sd">Here, the first term is the half mean of the SSE.</span>
+<span class="sd">And the second term is the shrinkage penalty.</span>
+<span class="sd">The parameter :math:`\\lambda` is called shrinkage hyperparamter.</span>
+<span class="sd">Since it is the hyperparamter we chose it from the validation set,</span>
+<span class="sd">not from the train set.</span>
+
+
+<span class="sd">The term :math:`||w||^2` is the L-2 regularizaton on the SSE term.</span>
+<span class="sd">The square form is called Ridge Regression and the modulus form</span>
+<span class="sd">:math:`|w|` is called Lasso Regresssion.</span>
+
+
+<span class="sd">If we have both Lasso and Ridge regression it is called Elastic</span>
+<span class="sd">Net Regression. Elastic Net Regression have the parameters:</span>
+<span class="sd">:math:`\\lambda_1 ||w|| + \\lambda_2 ||w||^2`</span>
+
+
+<span class="sd">If a group of predictors are highly correlated among themselves, LASSO</span>
+<span class="sd">tends to pick only one of them and shrink the other to exact zero (or, very near to zero). Lasso can not do grouped selection and tends to choose only one variable.</span>
+<span class="sd">It is good for eliminating trivial features but not good for grouped selection.</span>
+<span class="sd">Lasso gives the sparse model and is computationally less expensive.</span>
+
+
+<span class="sd">On the other hand, Ridge Regression penalize the term on the squares of the</span>
+<span class="sd">magnitude. The weight are drawn near to zero but not exactly zero. This method</span>
+<span class="sd">is computationally inefficient.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># Imports</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="k">import</span> <span class="n">inv</span><span class="p">,</span> <span class="n">norm</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="nb">sum</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">array</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">exp</span>
+<span class="kn">from</span> <span class="nn">numpy.core.umath_tests</span> <span class="k">import</span> <span class="n">inner1d</span>
+<span class="c1"># from sklearn.metrics import mean_squared_error</span>
+
+
+<span class="c1"># Read data matrix X and labels t from text file.</span>
+<div class="viewcode-block" id="read_data"><a class="viewcode-back" href="../polyfit.html#polyfit.read_data">[docs]</a><span class="k">def</span> <span class="nf">read_data</span><span class="p">(</span><span class="n">infile</span><span class="p">):</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span> <span class="p">]</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="p">]</span>
+
+    <span class="c1">#debug</span>
+    <span class="c1"># print(&quot;X.shape = {}&quot;.format(X.shape))</span>
+    <span class="c1"># print(&quot;t.shape = {}&quot;.format(t.shape))</span>
+
+
+    <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">t</span></div>
+
+
+<div class="viewcode-block" id="read_data_vander"><a class="viewcode-back" href="../polyfit.html#polyfit.read_data_vander">[docs]</a><span class="k">def</span> <span class="nf">read_data_vander</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">M</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read the dataset and return vandermonde matrix Xvan for given degree M.</span>
+
+<span class="sd">    This function returns vandermonde matrix of 1d array X.</span>
+
+<span class="sd">    The vandermonde matrix will be of size len(X) * M.</span>
+
+<span class="sd">    But here final Xvan will have shape sample * (degree+1)</span>
+
+<span class="sd">    The first column of vandermonde matrix is all 1.</span>
+
+<span class="sd">    The last column will be M-1 nth power of second column, NOT Mth power.</span>
+
+<span class="sd">    The target t is of the size len(X)*1 i.e. N * 1 (N is sample size)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      infile (str): input dataset text file, whitespace separated</span>
+<span class="sd">      M (int): Degree of polynomial to fit</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        Numpy vander function (Vandermonde Matrix).</span>
+<span class="sd">        Refer `Numpy vander &lt;https://docs.scipy.org/doc/numpy/reference/generated/numpy.vander.html&gt;`_.</span>
+
+<span class="sd">        Example::</span>
+
+<span class="sd">            x = np.arange(1,6) # x must be 1d array</span>
+<span class="sd">            x = np.array([1,2,3,4,5])</span>
+<span class="sd">            xvan3 = np.vander(x, N=3,increasing=True)</span>
+<span class="sd">            # shape of xvn is len(x) * degree</span>
+<span class="sd">            # first column is all 1 and last power is excluded</span>
+<span class="sd">            [[ 1  1  1]</span>
+<span class="sd">            [ 1  2  4]</span>
+<span class="sd">            [ 1  3  9]</span>
+<span class="sd">            [ 1  4 16]</span>
+<span class="sd">            [ 1  5 25]]</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">       Numpy array slicing::</span>
+
+<span class="sd">        data     = np.arange(20).reshape((5,4))</span>
+<span class="sd">        col0     = data[:, [0] ]</span>
+<span class="sd">        col0_1   = data[:, [0,1]]</span>
+<span class="sd">        col0_1a  = data[:, :2]</span>
+<span class="sd">        not_col0 = data[:, 1:]</span>
+<span class="sd">        not_last = data[:, :-1]</span>
+
+<span class="sd">      &quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Design matrix X without t values of last column</span>
+
+    <span class="c1"># Make the Vandermonde matrix from X</span>
+    <span class="c1"># To use vandermonde X must be 1d array.</span>
+    <span class="c1"># X[:, 0] is first column of input data X.</span>
+    <span class="n">Xvan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vander</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">M</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">increasing</span> <span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+
+    <span class="c1"># debug</span>
+    <span class="c1"># print(&quot;X.shape = &quot;, X.shape)       # sample, 1</span>
+    <span class="c1"># print(&quot;Xvan.shape = &quot;, Xvan.shape) # sample, degree+1</span>
+    <span class="c1"># print(&quot;t.shape = &quot;, t.shape)       # sample, 1</span>
+
+    <span class="k">return</span> <span class="n">Xvan</span><span class="p">,</span> <span class="n">t</span></div>
+
+
+
+<div class="viewcode-block" id="train"><a class="viewcode-back" href="../polyfit.html#polyfit.train">[docs]</a><span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Train the data and return the weights w.</span>
+
+<span class="sd">    This model uses OLS method to train the data without the penalty term.</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">      J(w) = \\frac{1}{2N} \sum_{n=1}^N (h(x_n,w) - t_n)^2</span>
+
+<span class="sd">    Args:</span>
+
+<span class="sd">      X (array): Design matrix of size (m+1, n). I.e. There are</span>
+<span class="sd">        m features and one bias column in the matrix X.</span>
+
+<span class="sd">      t (column): target column vector</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">       Here the design matrix X should have one extra bias term.</span>
+
+<span class="sd">    .. warning::</span>
+
+<span class="sd">       The operator @ requires python &gt;= 3.5</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">       Matrix properties.</span>
+<span class="sd">       `Wikipedia &lt;https://en.wikipedia.org/wiki/Matrix_multiplication&gt;`_.</span>
+
+<span class="sd">       .. math::</span>
+
+<span class="sd">         AB \\neq  BA \\\\</span>
+<span class="sd">         (AB)^T =  B^T A^T \\\\</span>
+<span class="sd">         (AB)^{-1} =  B^{-1} A^{-1} \\\\</span>
+<span class="sd">         tr(AB) =  tr(BA) \\\\</span>
+<span class="sd">         det(AB) = det(A) det(B) = det(B) det(A) = det(BA)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># w = np.linalg.inv(X.T.dot(X)).dot(X.T).dot(t)</span>
+<div class="viewcode-block" id="train_regularized"><a class="viewcode-back" href="../polyfit.html#polyfit.train_regularized">[docs]</a>    <span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">inv</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">X</span><span class="p">))</span>  <span class="o">@</span> <span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">t</span><span class="p">)</span>
+
+    <span class="c1"># debug</span>
+    <span class="c1"># print(&quot;X.shape = {}&quot;.format(X.shape))</span>
+    <span class="c1"># print(&quot;t.shape = {}&quot;.format(t.shape))</span>
+
+    <span class="k">return</span> <span class="n">w</span></div>
+
+
+<span class="k">def</span> <span class="nf">train_regularized</span><span class="p">(</span><span class="n">Xm1</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">lam</span><span class="p">,</span> <span class="n">M</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Ridge Regularization (L2 normalization) with square penalty term.</span>
+
+<span class="sd">    The cost function for ridge regularization is</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">      J(w) = \\frac{1}{2N} \sum_{n=1}^N (h(x_n,w) - t_n)^2 + \\frac{\lambda}{2} ||w||^2</span>
+
+<span class="sd">    Minimizing cost function gives the weight vector w.</span>
+<span class="sd">    Here :math:`\\lambda` is the hyperparameter chosen from validation set</span>
+<span class="sd">    with lowest rmse for given values of degrees of polynomial. Different may</span>
+<span class="sd">    give the same minimum rmse and we choose one of them.</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">      w = (\lambda N I) (X^T t)</span>
+
+<span class="sd">    Args:</span>
+
+<span class="sd">      Xm1 (array): Design matrix of size (m+1, n). I.e. There are</span>
+<span class="sd">        m features and one bias column in the matrix X.</span>
+
+<span class="sd">      t (column): Target column vector. :math:`\\alpha no space before last`</span>
+
+<span class="sd">      lam (float): The hyperparameter :math:`\\alpha &gt; \\beta` for the regularization.</span>
+
+<span class="sd">      M (int): Degree of the polynomial to fit.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">       Here the design matrix X should have one extra bias term.</span>
+<span class="sd">       The function read_data_vander returns X with one extra</span>
+
+<span class="sd">    .. warning::</span>
+
+<span class="sd">       The operator @ requires python &gt;= 3.5</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># debug</span>
+    <span class="c1"># Example M = 9, Xm1 has shape 10,10 and t has shape 10,1</span>
+    <span class="c1"># print(&quot;Xm1.shape = {}&quot;.format(Xm1.shape))</span>
+    <span class="c1"># print(&quot;t.shape = {}&quot;.format(t.shape))</span>
+
+
+    <span class="c1"># First get the identity matrix of size deg+1 by deg+1</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">I</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">M</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># weight for ridge regression</span>
+<div class="viewcode-block" id="compute_rmse"><a class="viewcode-back" href="../polyfit.html#polyfit.compute_rmse">[docs]</a>    <span class="n">w_ridge</span> <span class="o">=</span> <span class="n">inv</span><span class="p">(</span><span class="n">lam</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="n">I</span> <span class="o">+</span> <span class="n">Xm1</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">Xm1</span> <span class="p">)</span>   <span class="o">@</span> <span class="p">(</span><span class="n">Xm1</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">t</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">w_ridge</span></div>
+
+<span class="c1"># Compute RMSE on dataset (X, t).</span>
+<span class="k">def</span> <span class="nf">compute_rmse</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the RMSE.</span>
+
+<span class="sd">    RMSE is the root mean square error.</span>
+
+<span class="sd">    .. math:: RMSE = \sqrt{\sum_{i=1}^{n}  \\frac{(h_i - t_i)^2}{n} }</span>
+
+<span class="sd">    Here the hypothesis h is the matrix product of X and w.</span>
+<span class="sd">    Hypothesis h should have the same dimension as target vector t.</span>
+
+
+<span class="sd">    The norm of 1d vector can be calculated as given in `Wikipedia Norm &lt;https://en.wikipedia.org/wiki/Norm_(mathematics)&gt;`_.</span>
+
+<span class="sd">    :math:`||x|| = \sqrt{x_1^2 + x_2^2 + ... + x_n^2}`</span>
+
+<span class="sd">    There are several methods to calculate hypothesis and norms.</span>
+
+<span class="sd">    `Refer to stackoverflow &lt;https://stackoverflow.com/questions/9171158/how-do-you-get-the-magnitude-of-a-vector-in-numpy&gt;`_.</span>
+
+
+<span class="sd">    Python codes to calculate norm of a 1d vector::</span>
+
+<span class="sd">        import numpy as np</span>
+<span class="sd">        from numpy.core.umath_tests import inner1d</span>
+
+<span class="sd">        V = np.random.random_sample((10**6,3,)) # 1 million vectors</span>
+<span class="sd">        A = np.sqrt(np.einsum(&#39;...i,...i&#39;, V, V))</span>
+<span class="sd">        B = np.linalg.norm(V,axis=1)</span>
+<span class="sd">        C = np.sqrt((V ** 2).sum(-1))</span>
+<span class="sd">        D = np.sqrt((V*V).sum(axis=1))</span>
+<span class="sd">        E = np.sqrt(inner1d(V,V))</span>
+
+<span class="sd">        print [np.allclose(E,x) for x in [A,B,C,D]] # [True, True, True, True]</span>
+
+<span class="sd">        import cProfile</span>
+<span class="sd">        cProfile.run(&quot;np.sqrt(np.einsum(&#39;...i,...i&#39;, V, V))&quot;) # 3 function calls in 0.013 seconds</span>
+<span class="sd">        cProfile.run(&#39;np.linalg.norm(V,axis=1)&#39;)              # 9 function calls in 0.029 seconds</span>
+<span class="sd">        cProfile.run(&#39;np.sqrt((V ** 2).sum(-1))&#39;)             # 5 function calls in 0.028 seconds</span>
+<span class="sd">        cProfile.run(&#39;np.sqrt((V*V).sum(axis=1))&#39;)            # 5 function calls in 0.027 seconds</span>
+<span class="sd">        cProfile.run(&#39;np.sqrt(inner1d(V,V))&#39;)                 # 2 function calls in 0.009 seconds.</span>
+<span class="sd">        # np.eisensum can also be written as</span>
+<span class="sd">        # np.sqrt(np.einsum(&#39;ij,ij-&gt;i&#39;,a,a))</span>
+<span class="sd">        # NOTE:</span>
+<span class="sd">        # inner1d is ~3x faster than linalg.norm and a hair faster than einsum</span>
+<span class="sd">        # For small data set ~1000 or less numpy is faster</span>
+<span class="sd">        # a_norm = np.sqrt(a.dot(a)) is faster than np.sqrt(np.einsum(&#39;i,i&#39;, a, a))</span>
+
+
+
+<span class="sd">    We can calculate hypothesis as:</span>
+<span class="sd">    :math:`h = X @ w`</span>
+
+
+<span class="sd">    Or, we may use:</span>
+<span class="sd">    :math:`h = X .dot(w)`</span>
+
+<span class="sd">    One of the fastest methods to calculate the hypothesis is the</span>
+<span class="sd">    np.einsum method. The explanation of `einsum` is given below:</span>
+
+
+<span class="sd">    For example::</span>
+
+<span class="sd">      w     X      t</span>
+<span class="sd">      2,1   10,2   10,1</span>
+<span class="sd">      i,j   k, i   k,j</span>
+
+<span class="sd">      h = np.einsum(&#39;ij,ki-&gt;kj&#39;, w, X) = X @ w</span>
+
+<span class="sd">    To find the norm of the residual matrix h-t we may use</span>
+<span class="sd">    the code::</span>
+
+<span class="sd">      # Using np.linalg.norm</span>
+<span class="sd">      ht_norm = np.linalg.norm(h - t)</span>
+
+<span class="sd">      # inner1d is the faster than np.linalg.norm subroutine.</span>
+<span class="sd">      from numpy.core.umath_tests import inner1d</span>
+<span class="sd">      ht_norm = np.sqrt(inner1d(h-t,h-t))</span>
+
+<span class="sd">    To calculate RMSE we can also use sklearn library::</span>
+
+<span class="sd">      from sklearn.metrics import mean_squared_error</span>
+<span class="sd">      rmse = mean_squared_error(h, t)**0.5</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># # print(&quot;w.shape = {}, X.shape = {} t.shape = {}&quot;.format(w.shape,X.shape,t.shape))</span>
+    <span class="c1"># h = X.dot(w)</span>
+    <span class="c1"># h = X @ w</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;ij,ki-&gt;kj&#39;</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
+    <span class="n">sse</span> <span class="o">=</span> <span class="p">(</span><span class="n">h</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="n">mse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">sse</span><span class="p">)</span>
+    <span class="n">rmse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">mse</span><span class="p">)</span>
+
+    <span class="c1"># Method from sklearn</span>
+    <span class="c1"># rmse = mean_squared_error(X@w, t)**0.5 # 7.10437e-04</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">(</span><span class="n">rmse</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="myplot"><a class="viewcode-back" href="../polyfit.html#polyfit.myplot">[docs]</a><span class="k">def</span> <span class="nf">myplot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span><span class="n">label</span><span class="p">,</span><span class="n">style</span><span class="p">):</span>
+    <span class="c1"># matplotlib customization</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;ggplot&#39;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+
+    <span class="c1"># plot with label, title</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="n">style</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="c1"># set xlabel and ylabel to AxisObject</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;t&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Polynomial &#39;</span> <span class="o">+</span> <span class="n">label</span> <span class="o">+</span> <span class="s1">&#39; data&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;images/hw01qn3_&#39;</span><span class="o">+</span> <span class="n">label</span><span class="o">+</span><span class="s1">&#39;.png&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="plot_alldata"><a class="viewcode-back" href="../polyfit.html#polyfit.plot_alldata">[docs]</a><span class="k">def</span> <span class="nf">plot_alldata</span><span class="p">():</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;dataset&#39;</span><span class="p">,</span><span class="s1">&#39;devel&#39;</span><span class="p">,</span><span class="s1">&#39;train&#39;</span><span class="p">,</span><span class="s1">&#39;test&#39;</span><span class="p">]</span>
+    <span class="n">styles</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ro&#39;</span><span class="p">,</span><span class="s1">&#39;g^&#39;</span><span class="p">,</span><span class="s1">&#39;bo&#39;</span><span class="p">,</span><span class="s1">&#39;k&gt;&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">):</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">read_data</span><span class="p">(</span><span class="s1">&#39;../data/polyfit/</span><span class="si">{}</span><span class="s1">.txt&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">label</span><span class="p">))</span>
+        <span class="n">myplot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="n">label</span><span class="p">,</span><span class="n">styles</span><span class="p">[</span><span class="n">i</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="fit_unreg_poly"><a class="viewcode-back" href="../polyfit.html#polyfit.fit_unreg_poly">[docs]</a><span class="k">def</span> <span class="nf">fit_unreg_poly</span><span class="p">(</span><span class="n">fh_train</span><span class="p">,</span><span class="n">fh_test</span><span class="p">,</span><span class="n">fh_valid</span><span class="p">,</span><span class="n">M</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Unregularized polynomial regression for degree 0 to 9.</span>
+
+<span class="sd">    Here, the degree of the polynomial varies from 0-9.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      fh_train (str): File path for train data</span>
+<span class="sd">      fh_test (str): File path for test data</span>
+<span class="sd">      fh_valid (str): File path for validation data</span>
+
+<span class="sd">    Return: None</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get Vandermonde matrix X and target t</span>
+    <span class="c1"># First column is all 1 and shape of X is sample * deg+1</span>
+    <span class="c1"># M = 9 X has 10 columns, with first column all ones.</span>
+    <span class="n">Xtrain</span><span class="p">,</span> <span class="n">ttrain</span> <span class="o">=</span> <span class="n">read_data_vander</span><span class="p">(</span><span class="n">fh_train</span><span class="p">,</span><span class="n">M</span><span class="p">)</span>
+    <span class="n">Xtest</span><span class="p">,</span> <span class="n">ttest</span>   <span class="o">=</span> <span class="n">read_data_vander</span><span class="p">(</span><span class="n">fh_test</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+    <span class="n">Xvalid</span><span class="p">,</span> <span class="n">tvalid</span> <span class="o">=</span> <span class="n">read_data_vander</span><span class="p">(</span><span class="n">fh_valid</span><span class="p">,</span><span class="n">M</span><span class="p">)</span>
+
+    <span class="c1"># Look how they are</span>
+    <span class="c1"># print(&quot;Xtrain = {}&quot;.format(Xtrain))</span>
+    <span class="c1"># print(&quot;Xtrain.shape = {}&quot;.format(Xtrain.shape))</span>
+    <span class="c1"># print(&quot;Xtrain[0] = {}&quot;.format(Xtrain[0]))</span>
+
+
+    <span class="c1"># Values of degree of polynomials</span>
+    <span class="n">Mvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">E_train</span><span class="p">,</span> <span class="n">E_test</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">Mvals</span><span class="p">:</span>
+
+        <span class="c1"># X values to use</span>
+        <span class="c1"># XXX: Here inside for loop Xtrainm1 can not be written Xtrain</span>
+        <span class="c1"># :, means all rows</span>
+        <span class="c1"># 0:m+1 means columns 0 to m</span>
+        <span class="c1">#</span>
+        <span class="c1"># for loop m = 0 ... 9 we choose vandermonde matrix from above vander</span>
+        <span class="c1"># matrix of degree 9.</span>
+        <span class="c1"># Xtrain and Xtest both have 10 columns above for loop.</span>
+        <span class="n">Xtrainm1</span> <span class="o">=</span> <span class="n">Xtrain</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="n">m</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">Xtestm1</span>  <span class="o">=</span> <span class="n">Xtest</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="n">m</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># get weight w = (inv(X.T @ X))  @ (X.T @ t)</span>
+        <span class="c1">#  w is a column vector of shape m+1, 1 (e.g. 10,1 for m=9 )</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">train</span><span class="p">(</span><span class="n">Xtrainm1</span><span class="p">,</span> <span class="n">ttrain</span><span class="p">)</span>
+
+        <span class="c1"># get rmse = mean_squared_error(X@w, t)**0.5</span>
+        <span class="c1"># NOTE:  h= X @ w</span>
+        <span class="c1"># E = RMSE is scalar float number</span>
+        <span class="n">E1</span> <span class="o">=</span> <span class="n">compute_rmse</span><span class="p">(</span><span class="n">Xtrainm1</span><span class="p">,</span> <span class="n">ttrain</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+        <span class="n">E2</span> <span class="o">=</span> <span class="n">compute_rmse</span><span class="p">(</span><span class="n">Xtestm1</span><span class="p">,</span> <span class="n">ttrain</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+
+        <span class="c1"># Append values to rmse list</span>
+        <span class="n">E_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">E_train</span><span class="p">,</span> <span class="n">E1</span><span class="p">)</span>
+        <span class="n">E_test</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">E_test</span><span class="p">,</span> <span class="n">E2</span><span class="p">)</span>
+
+        <span class="c1"># debug</span>
+        <span class="c1"># print(&quot;\n&quot;)</span>
+        <span class="c1"># print(&quot;#&quot;*50)</span>
+        <span class="c1"># print(&quot;degree = {}&quot;.format(m))</span>
+        <span class="c1"># print(&quot;w.shape = {}&quot;.format(w.shape))</span>
+        <span class="c1"># print(&quot;ttrain.shape = &quot;, ttrain.shape)</span>
+        <span class="c1"># print(&#39;Train RMSE = {:.5e}&#39;.format(E1))</span>
+
+    <span class="c1"># Elegant way of computing rmse for train and test</span>
+    <span class="c1"># compute_rmse(X,t,w)</span>
+    <span class="c1"># E_train = [compute_rmse( Xtrain[:, 0:m+1], ttrain, train(</span>
+    <span class="c1">#                                                   Xtrain[:, 0:m+1], ttrain))</span>
+    <span class="c1">#            for m in Mvals]</span>
+    <span class="c1">#</span>
+    <span class="c1"># E_test  = [compute_rmse(Xtest[:, 0:m+1],  ttrain, train(</span>
+    <span class="c1">#                                                  Xtrain[:, 0:m+1], ttrain))</span>
+    <span class="c1">#            for m in Mvals]</span>
+
+    <span class="c1"># Plot unregularized polynomial regression</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Mvals</span><span class="p">,</span> <span class="n">E_train</span><span class="p">,</span> <span class="s1">&#39;r-&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;train&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Mvals</span><span class="p">,</span> <span class="n">E_test</span> <span class="p">,</span>  <span class="s1">&#39;b--&#39;</span> <span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span> <span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;degree (M)&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;$E_</span><span class="si">{rms}</span><span class="s2">$&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Unregularized Univariate Polynomial Regression&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;images/unreg_poly_reg.png&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="fit_reg_poly"><a class="viewcode-back" href="../polyfit.html#polyfit.fit_reg_poly">[docs]</a><span class="k">def</span> <span class="nf">fit_reg_poly</span><span class="p">(</span><span class="n">fh_train</span><span class="p">,</span><span class="n">fh_test</span><span class="p">,</span><span class="n">fh_valid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Regularized polynomial with fixed degree M = 9.</span>
+
+<span class="sd">    Here, ln lambda varies from -50 to 0 with step size 5.</span>
+<span class="sd">    I.e. lamdda varies from exp(-50) to 1.</span>
+
+<span class="sd">    We have to calculate weight vector w for each lambda.</span>
+<span class="sd">    For degree M = 9, weight vector w has 10 elements.</span>
+
+<span class="sd">    We also find RMSE for train and validation set for each lambda.</span>
+<span class="sd">    Then we choose the hyperparameter lambda that gives the lowest</span>
+<span class="sd">    RMSE on the validation set.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      fh_train (str): File path for train data</span>
+<span class="sd">      fh_test (str): File path for test data</span>
+<span class="sd">      fh_valid (str): File path for validation data</span>
+
+<span class="sd">    Return:</span>
+<span class="sd">      lam_min_rmse_valid (float): The value of hyper parameter lambda</span>
+<span class="sd">      that minimizes RMSE for the validation set.</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Degree of polynomial</span>
+    <span class="n">M</span> <span class="o">=</span> <span class="mi">9</span>
+
+    <span class="c1"># Values of shrinkage hyperparameter lambda</span>
+    <span class="n">log_lambda_ridge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">50</span><span class="p">,</span> <span class="mi">0</span><span class="o">+</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+    <span class="n">lambda_ridge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">log_lambda_ridge</span><span class="p">)</span>
+
+    <span class="c1"># X,t for train,test and validation</span>
+    <span class="c1"># vander gives bias term itself</span>
+    <span class="c1"># Here, X matrix has M+1 columns. First column is all ones.</span>
+    <span class="n">Xtrain</span><span class="p">,</span> <span class="n">ttrain</span> <span class="o">=</span> <span class="n">read_data_vander</span><span class="p">(</span><span class="n">fh_train</span><span class="p">,</span><span class="n">M</span><span class="p">)</span>
+    <span class="n">Xtest</span><span class="p">,</span> <span class="n">ttest</span>   <span class="o">=</span> <span class="n">read_data_vander</span><span class="p">(</span><span class="n">fh_test</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+    <span class="n">Xvalid</span><span class="p">,</span> <span class="n">tvalid</span> <span class="o">=</span> <span class="n">read_data_vander</span><span class="p">(</span><span class="n">fh_valid</span><span class="p">,</span><span class="n">M</span><span class="p">)</span>
+
+
+    <span class="c1"># Initiliaze rmse_train and rmse_validation</span>
+    <span class="n">E_train_ridge</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">E_valid_ridge</span>  <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">lam</span> <span class="ow">in</span> <span class="n">lambda_ridge</span><span class="p">:</span>
+
+        <span class="c1"># print(&quot;lam = {:.2e} log(lam) = {:.0f}&quot;.format(lam, np.log(lam)))</span>
+        <span class="c1"># get w from training (note that we get lambda from validation)</span>
+        <span class="c1"># w_ridge = inv(lam * N * I + Xm1.T @ Xm1 )   @ (Xm1.T @ t)</span>
+        <span class="n">w_ridge</span> <span class="o">=</span> <span class="n">train_regularized</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">,</span><span class="n">ttrain</span><span class="p">,</span><span class="nb">float</span><span class="p">(</span><span class="n">lam</span><span class="p">),</span> <span class="n">M</span><span class="p">)</span>
+
+        <span class="c1"># rmse for train and valid</span>
+        <span class="n">E1</span> <span class="o">=</span> <span class="n">compute_rmse</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">,</span> <span class="n">ttrain</span><span class="p">,</span> <span class="n">w_ridge</span><span class="p">)</span>
+        <span class="n">E2</span> <span class="o">=</span> <span class="n">compute_rmse</span><span class="p">(</span><span class="n">Xvalid</span><span class="p">,</span> <span class="n">tvalid</span><span class="p">,</span> <span class="n">w_ridge</span><span class="p">)</span>
+
+        <span class="c1"># Append rmse to the list</span>
+        <span class="n">E_train_ridge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">E_train_ridge</span><span class="p">,</span> <span class="n">E1</span><span class="p">)</span>
+        <span class="n">E_valid_ridge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">E_valid_ridge</span><span class="p">,</span> <span class="n">E2</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ridge Regression:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Degree of polynomial M = &quot;</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;log(lam)   lam          E_train             E_valid&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">lam</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lambda_ridge</span><span class="p">)</span> <span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; </span><span class="si">{:.2f}</span><span class="s1">   </span><span class="si">{:.5e}</span><span class="s1"> </span><span class="si">{:.14f}</span><span class="s1">   </span><span class="si">{:.14f}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">lam</span><span class="p">),</span> <span class="n">lam</span><span class="p">,</span> <span class="n">E_train_ridge</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">E_valid_ridge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">))</span>
+
+    <span class="n">lam_min_rmse_valid_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">E_valid_ridge</span> <span class="o">==</span> <span class="nb">min</span><span class="p">(</span><span class="n">E_valid_ridge</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">lam_min_rmse_valid_idx_last</span> <span class="o">=</span> <span class="n">lam_min_rmse_valid_idx</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">lam_min_rmse_valid_idx_last</span>
+    <span class="n">lam_min_rmse_valid</span> <span class="o">=</span> <span class="n">lambda_ridge</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">    </span><span class="si">{:.5e}</span><span class="s2">                    </span><span class="si">{:.14f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">log</span><span class="p">(</span><span class="n">lambda_ridge</span><span class="p">[</span><span class="n">idx</span><span class="p">]),</span> <span class="n">lam_min_rmse_valid</span><span class="p">,</span> <span class="n">E_valid_ridge</span><span class="p">[</span><span class="n">idx</span><span class="p">]))</span>
+
+    <span class="c1"># Plot</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">log_lambda_ridge</span><span class="p">,</span> <span class="n">E_train_ridge</span><span class="p">,</span>
+             <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;train&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">log_lambda_ridge</span><span class="p">,</span> <span class="n">E_valid_ridge</span><span class="p">,</span>
+             <span class="n">color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;validation&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;log $\lambda$&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;$E_</span><span class="si">{rms}</span><span class="s2">$&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Polynomial Regression Cross Validation&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;images/reg_poly_reg.png&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># Plot table</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+    <span class="n">clust_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">log_lambda_ridge</span><span class="p">,</span><span class="n">lambda_ridge</span><span class="p">,</span> <span class="n">E_train_ridge</span><span class="p">,</span> <span class="n">E_valid_ridge</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">collabel</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;log($\lambda$)&quot;</span><span class="p">,</span> <span class="s2">&quot;$\lambda$&quot;</span><span class="p">,</span> <span class="s2">&quot;$E_</span><span class="si">{train}</span><span class="s2">$&quot;</span><span class="p">,</span><span class="s2">&quot;$E_</span><span class="si">{valid}</span><span class="s2">$&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+    <span class="n">the_table</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">cellText</span><span class="o">=</span><span class="n">clust_data</span><span class="p">,</span><span class="n">colLabels</span><span class="o">=</span><span class="n">collabel</span><span class="p">,</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">clust_data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="n">clust_data</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Choosing hyperparameter $\lambda$ &#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;images/table_reg_poly_fitting.png&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">lam_min_rmse_valid</span></div>
+
+<div class="viewcode-block" id="comparison"><a class="viewcode-back" href="../polyfit.html#polyfit.comparison">[docs]</a><span class="k">def</span> <span class="nf">comparison</span><span class="p">(</span><span class="n">fh_train</span><span class="p">,</span><span class="n">fh_test</span><span class="p">,</span><span class="n">fh_valid</span><span class="p">,</span> <span class="n">lam_min_rmse_valid</span><span class="p">,</span><span class="n">M</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compare the unregularized and regularized polynomial regression.</span>
+
+<span class="sd">    Here, we compare test RMSE with and without ridge regularization for</span>
+<span class="sd">    9th degree univariate polynomial regression.</span>
+
+<span class="sd">    While fitting test data with ridge regression, we use the hyper parameter</span>
+<span class="sd">    lambda that gives the minimum rmse in the cross-validation set.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      fh_train (str): File path for train data</span>
+<span class="sd">      fh_test (str): File path for test data</span>
+<span class="sd">      fh_valid (str): File path for validation data</span>
+<span class="sd">      lam_min_rmse_valid (float): The hyperparameter lambda that gives minimum</span>
+<span class="sd">      rmse on cross validation set.</span>
+
+<span class="sd">    Return: None</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="o">*</span><span class="mi">50</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Comparison of regularized and unregularized cases:&quot;</span><span class="p">)</span>
+    <span class="c1"># print(&quot;lam_min_rmse_valid = {}&quot;.format(lam_min_rmse_valid))</span>
+
+    <span class="c1"># Get X and t from dataset</span>
+    <span class="n">Xtrain</span><span class="p">,</span> <span class="n">ttrain</span> <span class="o">=</span> <span class="n">read_data_vander</span><span class="p">(</span><span class="n">fh_train</span><span class="p">,</span><span class="n">M</span><span class="p">)</span>
+    <span class="n">Xtest</span><span class="p">,</span> <span class="n">ttest</span>   <span class="o">=</span> <span class="n">read_data_vander</span><span class="p">(</span><span class="n">fh_test</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+    <span class="n">Xvalid</span><span class="p">,</span> <span class="n">tvalid</span> <span class="o">=</span> <span class="n">read_data_vander</span><span class="p">(</span><span class="n">fh_valid</span><span class="p">,</span><span class="n">M</span><span class="p">)</span>
+
+    <span class="c1"># Unregularized</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">train</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">,</span> <span class="n">ttrain</span><span class="p">)</span>
+    <span class="n">E_rms_test</span> <span class="o">=</span> <span class="n">compute_rmse</span><span class="p">(</span><span class="n">Xtest</span><span class="p">,</span> <span class="n">ttest</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Test RMSE without regularization for M = 9: </span><span class="si">%0.4f</span><span class="s1">.&#39;</span> <span class="o">%</span> <span class="n">E_rms_test</span><span class="p">)</span>
+
+    <span class="n">w_ridge</span> <span class="o">=</span> <span class="n">train_regularized</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">,</span><span class="n">ttrain</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">lam_min_rmse_valid</span><span class="p">),</span> <span class="n">M</span><span class="p">)</span>
+    <span class="n">E_rms_test</span> <span class="o">=</span> <span class="n">compute_rmse</span><span class="p">(</span><span class="n">Xtest</span><span class="p">,</span> <span class="n">ttest</span><span class="p">,</span> <span class="n">w_ridge</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Test RMSE with    regularization for M = 9: </span><span class="si">%0.4f</span><span class="s1">.&#39;</span> <span class="o">%</span> <span class="n">E_rms_test</span><span class="p">)</span></div>
+
+
+
+<span class="c1">##=======================================================================</span>
+<span class="c1">## Main Program</span>
+<span class="c1">##=======================================================================</span>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../polyfit.html#polyfit.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Run main function.&quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="s1">&#39;Univariate Exercise.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="s1">&#39;--input_data_dir&#39;</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;../data/polyfit&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Directory for the polyfit dataset.&#39;</span><span class="p">)</span>
+    <span class="n">FLAGS</span><span class="p">,</span> <span class="n">unparsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_known_args</span><span class="p">()</span>
+
+    <span class="c1">##=======================================================================</span>
+    <span class="c1">## Part 3b: Plotting dataset</span>
+    <span class="c1">##=======================================================================</span>
+    <span class="c1"># Plot dataset</span>
+    <span class="n">plot_alldata</span><span class="p">()</span>
+
+    <span class="c1">##=======================================================================</span>
+    <span class="c1">## Part 3d: Polynomial Univariate Ridge Regularization</span>
+    <span class="c1">##=======================================================================</span>
+    <span class="n">fh_train</span> <span class="o">=</span> <span class="n">FLAGS</span><span class="o">.</span><span class="n">input_data_dir</span> <span class="o">+</span> <span class="s2">&quot;/train.txt&quot;</span>
+    <span class="n">fh_test</span> <span class="o">=</span> <span class="n">FLAGS</span><span class="o">.</span><span class="n">input_data_dir</span> <span class="o">+</span> <span class="s2">&quot;/test.txt&quot;</span>
+    <span class="n">fh_valid</span> <span class="o">=</span> <span class="n">FLAGS</span><span class="o">.</span><span class="n">input_data_dir</span> <span class="o">+</span> <span class="s2">&quot;/devel.txt&quot;</span>
+
+    <span class="c1"># unregularized</span>
+    <span class="n">fit_unreg_poly</span><span class="p">(</span><span class="n">fh_train</span><span class="p">,</span><span class="n">fh_test</span><span class="p">,</span><span class="n">fh_valid</span><span class="p">,</span><span class="n">M</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+
+    <span class="c1"># regularized</span>
+    <span class="n">lam_min_rmse_valid</span> <span class="o">=</span> <span class="n">fit_reg_poly</span><span class="p">(</span><span class="n">fh_train</span><span class="p">,</span><span class="n">fh_test</span><span class="p">,</span><span class="n">fh_valid</span><span class="p">)</span>
+
+    <span class="c1"># compare them</span>
+    <span class="n">comparison</span><span class="p">(</span><span class="n">fh_train</span><span class="p">,</span><span class="n">fh_test</span><span class="p">,</span><span class="n">fh_valid</span><span class="p">,</span> <span class="n">lam_min_rmse_valid</span><span class="p">,</span><span class="n">M</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">time</span>
+
+    <span class="c1"># Beginning time</span>
+    <span class="n">program_begin_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">begin_ctime</span>        <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">ctime</span><span class="p">()</span>
+
+    <span class="c1">#  Run the main program</span>
+    <span class="n">main</span><span class="p">()</span>
+
+
+    <span class="c1"># Print the time taken</span>
+    <span class="n">program_end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">end_ctime</span>        <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">ctime</span><span class="p">()</span>
+    <span class="n">seconds</span>          <span class="o">=</span> <span class="n">program_end_time</span> <span class="o">-</span> <span class="n">program_begin_time</span>
+    <span class="n">m</span><span class="p">,</span> <span class="n">s</span>             <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">seconds</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
+    <span class="n">h</span><span class="p">,</span> <span class="n">m</span>             <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
+    <span class="n">d</span><span class="p">,</span> <span class="n">h</span>             <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Begin time: &quot;</span><span class="p">,</span> <span class="n">begin_ctime</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;End   time: &quot;</span><span class="p">,</span> <span class="n">end_ctime</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Time taken: </span><span class="si">{0: .0f}</span><span class="s2"> days, </span><span class="si">{1: .0f}</span><span class="s2"> hours, </span><span class="se">\</span>
+<span class="s2">      </span><span class="si">{2: .0f}</span><span class="s2"> minutes, </span><span class="si">{3: f}</span><span class="s2"> seconds.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Bhishan&#39;s 1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Bhishan Poudel.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
+    </div>
+  </body>
+</html>
